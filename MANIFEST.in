@@ -1,0 +1,3 @@
+recursive-include jarvis/static *.*
+recursive-include jarvis/templates *.*
+include README.md libraries.txt
