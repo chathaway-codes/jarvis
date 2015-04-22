@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block extrahead %}
+    <link rel="stylesheet" href="{{ STATIC_URL }}jarvis/style.css" type="text/css" media="all" />
+{% endblock %}
+
+{% block content %}
+<input type="button" value="Restart AI..." onclick="restart()">
+<!-- Output/input section -->
+<div id="caja">
+    <div id="output">
+    </div>
+    <input id="input" type="text" placeholder="Input..."></input><input type="button" onclick="input()" value="Submit"></input>
+    <input type="button" value="Update code" onclick="update_code()">
+</div>
+
+<!-- ACE editor -->
+<div id="editor" onkeypress="save_document()">
+return {
+    onstart: function() {
+        output("Hello, world!");
+    },
+    oninput: function(s) {
+        output(s);
+    }
+};
+</div>
+<input type="button" value="Update code" onclick="update_code()">
+{% endblock %}
+
+{% block extrajs %}
+    <script type="text/javascript" src="//caja.appspot.com/caja.js"></script>
+    <script src="{{ STATIC_URL }}jarvis/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script>
+        var editor = ace.edit("editor");
+        var callbacks = {
+            onstart: function() {},
+            oninput: function(input) {},
+            onclose: function() {}
+        };
+
+        var restart = function() {
+            document.getElementById('output').innerHTML = "";
+            callbacks.onstart();
+        };
+
+        var input = function() {
+            // Get the input from the text box, and call the input function
+            var value = document.getElementById("input").value;
+            callbacks.oninput(value);
+        };
+
+        var output = function(s) {
+            document.getElementById('output').innerHTML += "<br /> >" + s;
+            document.getElementById('output').scrollTo(0,document.getElementById('output').scrollHeight);
+        }
+        
+        var save_document = function() {
+            setCookie("editor", editor.getSession().getValue(), 60);
+        }
+
+        //http://www.w3schools.com/js/js_cookies.asp
+        function setCookie(cname, cvalue, exdays) {
+            var d = new Date();
+            d.setTime(d.getTime() + (exdays*24*60*60*1000));
+            var expires = "expires="+d.toUTCString();
+            document.cookie = cname + "=" + escape(cvalue) + "; " + expires;
+        } 
+        
+        function getCookie(cname) {
+            var name = cname + "=";
+            var ca = document.cookie.split(';');
+            for(var i=0; i<ca.length; i++) {
+                var c = ca[i];
+                while (c.charAt(0)==' ') c = c.substring(1);
+                if (c.indexOf(name) == 0) return unescape(c.substring(name.length,c.length));
+            }
+            return "";
+        } 
+
+        var update_code = function() {
+            caja.load(
+                document.getElementById('caja'),  // no DOM access
+                undefined,  // no network access
+                function(frame) {
+                  var content = editor.getSession().getValue();
+                  frame.code(
+                           'http://example.com/default.js',  // dummy URL
+                           'application/javascript',
+                           content)  // input source code
+                       .api({output: output})
+                       .run(function(result) {
+                         callbacks = result;
+                       });
+                });
+        }
+
+
+        editor.setTheme("ace/theme/monokai");
+        editor.getSession().setMode("ace/mode/javascript");
+
+        if(getCookie("editor") != "") {
+            editor.getSession().setValue(getCookie("editor"));
+        }
+
+        caja.initialize({ cajaServer: 'http://caja.appspot.com' });
+        update_code();
+    </script>
+{% endblock %}
