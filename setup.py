@@ -3,6 +3,7 @@ import os, sys
 
 try:
     from setuptools import setup
+    from setuptools import find_packages
 except:
     from distutils.core import setup
 
@@ -25,8 +26,9 @@ setup(
     author_email = "chathaway@logrit.com",
     description = "Provides a page that allows users to create their own Jarvis system",
     keywords = "",
-    packages=['jarvis'],
+    packages=find_packages(),
     long_description=read('README.md'),
     install_requires = read_requirements('libraries.txt'),
     test_suite = "dummy",
+    include_package_data=True,
 )
