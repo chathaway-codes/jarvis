@@ -12,6 +12,7 @@ urlpatterns = patterns('',
     # TemplateView + Login
     #url(r'^$', login_required(TemplateView.as_view(template_name="home.html")), {}, 'home'),
     url(r'^$', TemplateView.as_view(template_name="jarvis/jarvis.html"), name='jarvis'),
+    url(r'^(?P<parent_md5>[a-zA-Z0-9]{32})/$', 'jarvis.views.store_code', name='jarvis-code'),
 )
 
 if settings.DEBUG:

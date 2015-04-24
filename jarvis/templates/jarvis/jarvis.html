@@ -5,13 +5,14 @@
 {% endblock %}
 
 {% block content %}
-<input type="button" value="Restart AI..." onclick="restart()">
+<form method='post'>
+<input class="btn btn-warning" type="button" value="Restart AI..." onclick="restart()">
 <!-- Output/input section -->
 <div id="caja">
     <div id="output">
     </div>
-    <input id="input" type="text" placeholder="Input..."></input><input type="button" onclick="input()" value="Submit"></input>
-    <input type="button" value="Update code" onclick="update_code()">
+    <input id="input" type="text" placeholder="Input..."></input><input class="btn btn-default" type="button" onclick="input()" value="Submit"></input>
+    <input class="btn btn-info" type="button" value="Update code" onclick="update_code()">
 </div>
 
 <!-- ACE editor -->
@@ -25,7 +26,8 @@ return {
     }
 };
 </div>
-<input type="button" value="Update code" onclick="update_code()">
+<input class="btn btn-info" type="button" value="Update code" onclick="update_code()">
+</form>
 {% endblock %}
 
 {% block extrajs %}
@@ -47,6 +49,7 @@ return {
         var input = function() {
             // Get the input from the text box, and call the input function
             var value = document.getElementById("input").value;
+            document.getElementById("input").value = '';
             callbacks.oninput(value);
         };
 
@@ -77,6 +80,14 @@ return {
             }
             return "";
         } 
+
+        // http://stackoverflow.com/questions/8894226/javascript-submit-textbox-on-enter
+        document.getElementById("input").addEventListener("keydown", function(e) {
+            if (!e) { var e = window.event; }
+        
+            // Enter is pressed
+            if (e.keyCode == 13) { input(); }
+        }, false);
 
         var update_code = function() {
             caja.load(
