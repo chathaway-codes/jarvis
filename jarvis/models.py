@@ -7,5 +7,6 @@ from django.conf import settings
 class CodeShare(models.Model):
     md5 = models.CharField(max_length=32)
     code = models.TextField()
+    when_created = models.DateTimeField(auto_now_add=True)
 
     parent = models.ForeignKey('jarvis.CodeShare', null=True, blank=True)

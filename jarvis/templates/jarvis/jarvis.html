@@ -5,7 +5,12 @@
 {% endblock %}
 
 {% block content %}
+{% if url %}
+    <h3>Share this link: <a href="{{ url }}">{{ url }}</a></h3>
+{% endif %}
 <form method='post'>
+{% csrf_token %}
+<input class="btn btn-default" type="submit" value="Share with others..." onclick="update_forms()">
 <input class="btn btn-warning" type="button" value="Restart AI..." onclick="restart()">
 <!-- Output/input section -->
 <div id="caja">
@@ -16,16 +21,12 @@
 </div>
 
 <!-- ACE editor -->
-<div id="editor" onkeypress="save_document()">
-return {
-    onstart: function() {
-        output("Hello, world!");
-    },
-    oninput: function(s) {
-        output(s);
-    }
-};
-</div>
+<div id="editor" onkeypress="save_document()">{{ code }}</div>
+
+<textarea name="code" id="raw_code" style="display: none;">The code</textarea>
+{% if parent_md5 %}
+    <input type="text" value="{{ parent_md5 }}" style="display: none;"></input>
+{% endif %}
 <input class="btn btn-info" type="button" value="Update code" onclick="update_code()">
 </form>
 {% endblock %}
@@ -34,6 +35,10 @@ return {
     <script type="text/javascript" src="//caja.appspot.com/caja.js"></script>
     <script src="{{ STATIC_URL }}jarvis/ace/ace.js" type="text/javascript" charset="utf-8"></script>
     <script>
+        var parent_md5 = "";
+        {% if parent_md5 %}
+            parent_md5 = " {{ parent_md5 }}"
+        {% endif %}
         var editor = ace.edit("editor");
         var callbacks = {
             onstart: function() {},
@@ -59,7 +64,7 @@ return {
         }
         
         var save_document = function() {
-            setCookie("editor", editor.getSession().getValue(), 60);
+            setCookie("editor"+parent_md5, editor.getSession().getValue(), 60);
         }
 
         //http://www.w3schools.com/js/js_cookies.asp
@@ -81,12 +86,16 @@ return {
             return "";
         } 
 
+        var update_forms = function() {
+            document.getElementById("raw_code").value = editor.getSession().getValue();
+        };
+
         // http://stackoverflow.com/questions/8894226/javascript-submit-textbox-on-enter
         document.getElementById("input").addEventListener("keydown", function(e) {
             if (!e) { var e = window.event; }
         
             // Enter is pressed
-            if (e.keyCode == 13) { input(); }
+            if (e.keyCode == 13) { e.preventDefault(); input(); }
         }, false);
 
         var update_code = function() {
@@ -102,6 +111,7 @@ return {
                        .api({output: output})
                        .run(function(result) {
                          callbacks = result;
+                         restart();
                        });
                 });
         }
@@ -110,8 +120,8 @@ return {
         editor.setTheme("ace/theme/monokai");
         editor.getSession().setMode("ace/mode/javascript");
 
-        if(getCookie("editor") != "") {
-            editor.getSession().setValue(getCookie("editor"));
+        if(getCookie("editor"+parent_md5) != "") {
+            editor.getSession().setValue(getCookie("editor"+parent_md5));
         }
 
         caja.initialize({ cajaServer: 'http://caja.appspot.com' });
